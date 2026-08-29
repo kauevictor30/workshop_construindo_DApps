@@ -1,0 +1,45 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Session {
+  id             String        @id @default(uuid())
+  title          String
+  presenterToken String        @default(uuid())
+  status         String        @default("live") // draft, live, ended
+  currentSlide   Int           @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  participants   Participant[]
+  slides         Slide[]
+}
+
+model Participant {
+  id          String   @id @default(uuid())
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  consentLgpd Boolean  @default(true)
+  joinedAt    DateTime @default(now())
+
+  @@unique([sessionId, email])
+}
+
+model Slide {
+  id        String   @id @default(uuid())
+  sessionId String
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  order     Int
+  title     String
+  content   String   // JSON stringified slide payload
+  notes     String?  // Speaker notes
+}
