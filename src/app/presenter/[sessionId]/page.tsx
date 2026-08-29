@@ -191,35 +191,37 @@ export default function PresenterControlPage({ params }: { params: Promise<{ ses
     setIsAuthenticated(true);
   };
 
-  const handleNextSlide = () => {
-    if (currentSlideIndex < slides.length - 1 && socketRef.current) {
-      const target = currentSlideIndex + 1;
+  const syncSlideToServer = (targetIndex: number) => {
+    setCurrentSlideIndex(targetIndex);
+    if (socketRef.current) {
       socketRef.current.emit('slide:navigate', {
         sessionId,
         token: presenterToken,
-        targetSlide: target,
+        targetSlide: targetIndex,
       });
+    }
+    fetch(`/api/session/${sessionId}/slide`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slideIndex: targetIndex, token: presenterToken }),
+    }).catch((err) => console.error('Failed to sync slide to HTTP API:', err));
+  };
+
+  const handleNextSlide = () => {
+    if (currentSlideIndex < slides.length - 1) {
+      syncSlideToServer(currentSlideIndex + 1);
     }
   };
 
   const handlePrevSlide = () => {
-    if (currentSlideIndex > 0 && socketRef.current) {
-      const target = currentSlideIndex - 1;
-      socketRef.current.emit('slide:navigate', {
-        sessionId,
-        token: presenterToken,
-        targetSlide: target,
-      });
+    if (currentSlideIndex > 0) {
+      syncSlideToServer(currentSlideIndex - 1);
     }
   };
 
   const handleGotoSlide = (index: number) => {
-    if (socketRef.current && index >= 0 && index < slides.length) {
-      socketRef.current.emit('slide:navigate', {
-        sessionId,
-        token: presenterToken,
-        targetSlide: index,
-      });
+    if (index >= 0 && index < slides.length) {
+      syncSlideToServer(index);
     }
   };
 

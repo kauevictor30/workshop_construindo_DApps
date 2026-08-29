@@ -6,7 +6,7 @@ import { RegistrationForm } from '@/components/RegistrationForm';
 import { SlideViewer } from '@/components/SlideViewer';
 import { LaserPointer } from '@/components/LaserPointer';
 import confetti from 'canvas-confetti';
-import { Sparkles, MailCheck, AlertCircle, RefreshCw } from 'lucide-react';
+import { MailCheck, AlertCircle, RefreshCw, LogOut, Radio } from 'lucide-react';
 
 interface SlideItem {
   id: string;
@@ -28,8 +28,23 @@ export default function StudentJoinPage({ params }: { params: Promise<{ sessionI
   const [pointer, setPointer] = useState<{ xPct: number; yPct: number; visible: boolean }>({ xPct: 50, yPct: 50, visible: false });
   const [sessionEnded, setSessionEnded] = useState(false);
 
-  // Fetch session details on mount
+  // Clear participant cache handler
+  const handleClearParticipantCache = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`livedeck_user_${sessionId}`);
+    }
+    setParticipant(null);
+  };
+
+  // Fetch session details on mount + handle reset parameter
   useEffect(() => {
+    const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+    const forceReset = urlParams?.get('reset') === '1' || urlParams?.get('logout') === '1';
+
+    if (forceReset) {
+      localStorage.removeItem(`livedeck_user_${sessionId}`);
+    }
+
     fetch(`/api/session/${sessionId}`)
       .then((res) => {
         if (!res.ok) throw new Error('Sessão não encontrada.');
@@ -37,8 +52,10 @@ export default function StudentJoinPage({ params }: { params: Promise<{ sessionI
       })
       .then((data) => {
         setSession(data.session);
-        setSlides(data.slides);
-        setCurrentSlideIndex(data.session.currentSlide);
+        setSlides(data.slides || []);
+        if (typeof data.session.currentSlide === 'number') {
+          setCurrentSlideIndex(data.session.currentSlide);
+        }
         if (data.session.status === 'ended') {
           setSessionEnded(true);
         }
@@ -49,23 +66,53 @@ export default function StudentJoinPage({ params }: { params: Promise<{ sessionI
         setLoading(false);
       });
 
-    // Check localStorage for saved participant (RF-08)
-    const stored = localStorage.getItem(`livedeck_user_${sessionId}`);
-    if (stored) {
-      try {
-        setParticipant(JSON.parse(stored));
-      } catch (e) {
-        console.error('Failed to parse stored user:', e);
+    // Check localStorage for saved participant if not forceReset
+    if (!forceReset) {
+      const stored = localStorage.getItem(`livedeck_user_${sessionId}`);
+      if (stored) {
+        try {
+          setParticipant(JSON.parse(stored));
+        } catch (e) {
+          console.error('Failed to parse stored user:', e);
+        }
       }
     }
   }, [sessionId]);
 
-  // Connect to Socket.IO once participant is verified
+  // Resilient HTTP Polling Interval (every 1.5s) for instant Serverless/Vercel synchronization
+  useEffect(() => {
+    if (!session) return;
+
+    const syncInterval = setInterval(() => {
+      fetch(`/api/session/${sessionId}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.session) {
+            if (typeof data.session.currentSlide === 'number') {
+              setCurrentSlideIndex(data.session.currentSlide);
+            }
+            if (data.session.status === 'ended') {
+              setSessionEnded(true);
+            }
+          }
+        })
+        .catch(() => {});
+    }, 1500);
+
+    return () => clearInterval(syncInterval);
+  }, [sessionId, session]);
+
+  // Socket.IO sync fallback (for local dev / persistent socket server)
   useEffect(() => {
     if (!participant || !session) return;
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin;
-    const socket: Socket = io(socketUrl);
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    if (!socketUrl) return;
+
+    const socket: Socket = io(socketUrl, {
+      reconnectionAttempts: 3,
+      timeout: 5000,
+    });
 
     socket.emit('join:room', {
       sessionId,
@@ -73,7 +120,9 @@ export default function StudentJoinPage({ params }: { params: Promise<{ sessionI
     });
 
     socket.on('slide:sync', ({ currentSlide, status }) => {
-      setCurrentSlideIndex(currentSlide);
+      if (typeof currentSlide === 'number') {
+        setCurrentSlideIndex(currentSlide);
+      }
       if (status === 'ended') {
         setSessionEnded(true);
       }
@@ -83,13 +132,17 @@ export default function StudentJoinPage({ params }: { params: Promise<{ sessionI
       setPointer({ xPct, yPct, visible });
     });
 
-    socket.on('session:ended', ({ message }) => {
+    socket.on('session:ended', () => {
       setSessionEnded(true);
       confetti({
         particleCount: 120,
         spread: 70,
         origin: { y: 0.6 },
       });
+    });
+
+    socket.on('connect_error', () => {
+      // Quiet failover to HTTP polling on serverless environments
     });
 
     return () => {
@@ -126,7 +179,12 @@ export default function StudentJoinPage({ params }: { params: Promise<{ sessionI
         <RegistrationForm
           sessionId={session.id}
           sessionTitle={session.title}
-          onSuccess={(p) => setParticipant(p)}
+          onSuccess={(p) => {
+            if (typeof window !== 'undefined') {
+              localStorage.setItem(`livedeck_user_${sessionId}`, JSON.stringify(p));
+            }
+            setParticipant(p);
+          }}
         />
       </div>
     );
@@ -137,9 +195,26 @@ export default function StudentJoinPage({ params }: { params: Promise<{ sessionI
 
   return (
     <div className="w-screen h-screen overflow-hidden bg-slate-950 flex flex-col relative select-none">
+      {/* Spectator Top Control Bar */}
+      <div className="absolute top-3 left-4 right-4 z-40 flex items-center justify-between pointer-events-auto">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 backdrop-blur-md text-xs text-slate-300">
+          <Radio className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+          <span className="truncate max-w-[150px] sm:max-w-xs">{participant.name}</span>
+        </div>
+
+        <button
+          onClick={handleClearParticipantCache}
+          title="Sair ou alterar dados do cadastro"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-xs font-semibold text-slate-400 hover:text-white transition-all cursor-pointer backdrop-blur-md"
+        >
+          <LogOut className="w-3.5 h-3.5 text-rose-400" />
+          <span className="hidden sm:inline">Trocar Cadastro</span>
+        </button>
+      </div>
+
       {/* Session Ended Banner/Modal */}
       {sessionEnded && (
-        <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-lg w-[90%] p-4 rounded-2xl bg-gradient-to-r from-indigo-900/90 via-purple-900/90 to-slate-900/90 border border-indigo-500/50 backdrop-blur-xl shadow-2xl flex items-center gap-3 text-white">
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 z-50 max-w-lg w-[90%] p-4 rounded-2xl bg-gradient-to-r from-indigo-900/95 via-purple-900/95 to-slate-900/95 border border-indigo-500/50 backdrop-blur-xl shadow-2xl flex items-center gap-3 text-white">
           <MailCheck className="w-7 h-7 text-emerald-400 shrink-0" />
           <div className="text-xs md:text-sm">
             <p className="font-bold text-white">Sessão Encerrada pelo Instrutor!</p>
