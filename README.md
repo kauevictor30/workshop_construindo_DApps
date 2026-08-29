@@ -3,10 +3,23 @@
 > **Plataforma de Apresentação Interativa & Sincronizada em Tempo Real**  
 > *Introdução a Blockchain, Web3, Smart Contracts Soroban e Agentes de IA na Rede Stellar.*
 
+[![Baixar Slides em PDF](https://img.shields.io/badge/📥_Baixar_Slides-PDF_Direto-indigo?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](./public/slides_stellar_workshop.pdf)
+[![Link Direto GitHub Raw](https://img.shields.io/badge/📄_Download-GitHub_Raw-sky?style=for-the-badge)](https://raw.githubusercontent.com/kauevictor30/workshop_construindo_DApps/slides/public/slides_stellar_workshop.pdf)
+
+---
+
+## 📥 Download Direto dos Slides
+
+Você pode baixar os slides completos do workshop em formato **PDF** através dos links abaixo:
+
+- 💾 **[Download Local / Repositório (PDF)](./public/slides_stellar_workshop.pdf)**
+- 🌐 **[Download Direto via GitHub (Raw PDF)](https://raw.githubusercontent.com/kauevictor30/workshop_construindo_DApps/slides/public/slides_stellar_workshop.pdf)**
+
 ---
 
 ## 📋 Índice
 
+- [📥 Download Direto dos Slides](#-download-direto-dos-slides)
 - [1. Sobre o Workshop](#1-sobre-o-workshop)
 - [2. Arquitetura da Plataforma LiveDeck](#2-arquitetura-da-plataforma-livedeck)
 - [3. Conteúdo Programático Encorpado](#3-conteúdo-programático-encorpado)
