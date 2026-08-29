@@ -7,8 +7,18 @@ export interface SlideContent {
   subtitle?: string;
   highlights?: string[];
   points?: string[];
-  cards?: { title: string; desc: string }[];
-  code?: { language: string; snippet: string };
+  cards?: { title: string; desc: string; icon?: string; badge?: string }[];
+  timeline?: { year?: string; title: string; desc: string; highlight?: string }[];
+  comparison?: {
+    leftTitle: string;
+    leftBadge?: string;
+    leftItems: string[];
+    rightTitle: string;
+    rightBadge?: string;
+    rightItems: string[];
+  };
+  tipBox?: { title: string; desc: string; type?: 'tip' | 'warning' | 'info' };
+  code?: { language: string; snippet: string; explanation?: string };
 }
 
 export function getOrCreateDefaultSession(): { session: SessionRecord; slides: SlideRecord[] } {
@@ -26,7 +36,7 @@ export function getOrCreateDefaultSession(): { session: SessionRecord; slides: S
 
   const session: SessionRecord = {
     id: sessionId,
-    title: 'Introdução a Blockchain: Construindo DApps na Web3 com Agentes de IA na Prática',
+    title: 'Introdução a Blockchain: Construindo DApps na Web3 com Soroban & Agentes de IA',
     presenterToken,
     status: 'live',
     currentSlide: 0,
@@ -39,256 +49,302 @@ export function getOrCreateDefaultSession(): { session: SessionRecord; slides: S
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `).run(session.id, session.title, session.presenterToken, session.status, session.currentSlide, session.createdAt, session.updatedAt);
 
-  // Default Slide Deck Content
+  // Default Rich & Didactic Slide Deck Content
   const rawSlides: { title: string; notes?: string; content: SlideContent }[] = [
     {
-      title: 'Introdução a Blockchain & Web3',
-      notes: 'Dar boas-vindas a todos. Solicitar que escanem o QR Code no celular para acompanhar a apresentação em tempo real.',
+      title: 'Boas-Vindas ao Stellar Ambassador Workshop',
+      notes: 'Dar boas-vindas ao público. Explicar a dinâmica e incentivar o escaneamento do QR Code com o celular para acompanhar em tempo real.',
       content: {
-        category: 'Live Workshop 2026',
-        badge: 'Web3 + AI Architecture',
-        subtitle: 'Construindo DApps na Web3 com Agentes de IA na Prática',
+        category: 'Stellar Ambassador 2026',
+        badge: 'Web3 & AI Workshop',
+        subtitle: 'Construindo a Nova Era de Aplicações Descentralizadas com Soroban & Inteligência Artificial',
         highlights: [
-          'Decentralized Infrastructure & Smart Contracts',
-          'Autonomous Agentic Reasoning with LLMs',
-          'Account Abstraction (ERC-4337) & Keyless UX',
-          'Real-time On-Chain Data Integration',
+          '🌐 Infraestrutura Global: Como a Rede Stellar conecta o sistema financeiro mundial.',
+          '🦀 Smart Contracts Soroban: Programabilidade segura em Rust compilado para WebAssembly (WASM).',
+          '🤖 Agentes de IA Autônomos: Integração de LLMs com micropagamentos e execução on-chain.',
+          '📱 Sincronização em Tempo Real: Acompanhe cada slide no seu smartphone escaneando o QR Code.',
+        ],
+        tipBox: {
+          title: '💡 Dica Didática de Acompanhamento',
+          desc: 'Escaneie o QR Code na tela principal para entrar na sala. Você acompanhará as transições de slides e o ponteiro laser em tempo real!',
+          type: 'info',
+        },
+      },
+    },
+    {
+      title: 'Evolução Histórica da Web: Web1 → Web2 → Web3',
+      notes: 'Passar por cada fase com clareza. Destacar que a Web3 adiciona a camada de PROPRIEDADE (Ownership) de forma nativa.',
+      content: {
+        category: 'Fundamentos da Web3',
+        subtitle: 'Como saímos das páginas estáticas de 1990 para o valor descentralizado autônomo',
+        timeline: [
+          {
+            year: '1990 — 2004',
+            title: 'Web1: Leitura (Read-Only)',
+            desc: 'Páginas estáticas em HTML. O usuário consome informação passivamente sem interação.',
+            highlight: 'Servidores Estáticos & Portais',
+          },
+          {
+            year: '2004 — 2020',
+            title: 'Web2: Leitura + Escrita (Read-Write)',
+            desc: 'Redes sociais e Big Techs. Interatividade total, mas os dados e identidades pertencem a corporações.',
+            highlight: 'Bancos Centralizados & Monetização de Dados',
+          },
+          {
+            year: '2020 +',
+            title: 'Web3: Leitura + Escrita + Propriedade (Read-Write-Own)',
+            desc: 'Blockchain e Smart Contracts. O usuário possui seus dados, moedas e ativos digitais sem intermediários.',
+            highlight: 'Descentralização, Soroban & Agentes Autônomos',
+          },
         ],
       },
     },
     {
-      title: 'O Problema Atual das DApps',
-      notes: 'Explicar a dor real dos usuários Web2 tentando usar dApps atuais. A fricção de UX mata a conversão.',
+      title: 'Desmistificando Mitos: Transparência & Forense On-Chain',
+      notes: 'Abordar o mito do anonimato do Bitcoin/cripto. Explicar que a blockchain é um livro público imutável.',
       content: {
-        category: 'Contexto & Dores',
-        subtitle: 'UX Complexa e Alta Barreira de Entrada na Web3',
-        points: [
-          'Gestão de Wallets & Private Keys assusta e afasta usuários tradicionais.',
-          'Assinatura de Transações com calldata hexadecimal ininteligível.',
-          'Taxas de Gas flutuantes e falhas de execução sem mensagens amigáveis.',
-          'Falta de assistência proativa durante a jornada de onboarding.',
-        ],
+        category: 'Segurança & Verdades',
+        subtitle: 'Por que a Blockchain é a tecnologia mais auditável e transparente já inventada',
+        comparison: {
+          leftTitle: '❌ Mitos Populares Falsos',
+          leftBadge: 'Mito de Censo Comum',
+          leftItems: [
+            'Criptomoedas são completamente anônimas e indetectáveis.',
+            'A Blockchain é usada primariamente para atividades ilícitas.',
+            'Qualquer pessoa pode apagar ou alterar uma transação passada.',
+          ],
+          rightTitle: '✅ Realidade Técnica',
+          rightBadge: 'Funcionamento Real',
+          rightItems: [
+            'Publicidade Total: Todas as transações são públicas e rastreáveis on-chain.',
+            'Análise Forense: Ferramentas como Chainalysis monitoram fluxos globais em tempo real.',
+            'Imutabilidade Criptográfica: Bloco confirmado jamais pode ser modificado.',
+          ],
+        },
+        tipBox: {
+          title: '🔍 Curiosidade Forense',
+          desc: 'Estudos de órgãos reguladores comprovam que mais de 99% das atividades ilícitas no mundo utilizam papel moeda fiat tradicional, não criptoativos públicos!',
+          type: 'tip',
+        },
       },
     },
     {
-      title: 'A Nova Era: Agentes de IA na Web3',
-      notes: 'Mostrar como a transição de interfaces rígidas para Agentes Autônomos simplifica tudo.',
+      title: 'O que é uma DApp? (Decentralized Application)',
+      notes: 'Explicar os componentes centrais de uma DApp comparada a um site Web2 tradicional.',
       content: {
-        category: 'Arquitetura de Solução',
-        subtitle: 'De interfaces passivas para assistentes de decisão autônomos',
+        category: 'Arquitetura de Sistemas',
+        subtitle: 'Entendendo a diferença estrutural entre Web2 e Web3',
         cards: [
           {
-            title: 'Agentic Reasoning',
-            desc: 'Agentes analisam o estado da blockchain, calculam riscos e formulam intenções de execução (Intents).',
+            title: 'Frontend Reativo',
+            desc: 'Interface moderna (Next.js/React) conectada à carteira do usuário (ex: Freighter) para assinar transações.',
+            icon: 'layout',
+            badge: 'Interface do Usuário',
           },
           {
-            title: 'Account Abstraction (ERC-4337)',
-            desc: 'Agentes utilizam Paymasters para patrocinar gas e Bundlers para submeter transações sem fricção.',
+            title: 'Smart Contracts (Soroban)',
+            desc: 'A lógica de negócios não fica em um servidor privado, mas em código compilado WASM rodando na rede Stellar.',
+            icon: 'cpu',
+            badge: 'Backend Descentralizado',
           },
           {
-            title: 'Self-Correction & Audit',
-            desc: 'Agentes simulam chamadas on-chain via eth_call antes da execução real para evitar perda de fundos.',
+            title: 'Identidade Sovereign',
+            desc: 'Sem formulários de cadastro ou senhas vulneráveis. O acesso é feito via Chave Pública Criptográfica.',
+            icon: 'key',
+            badge: 'Autenticação Criptográfica',
           },
         ],
       },
     },
     {
-      title: 'Anatomia de um Smart Contract Moderno',
-      notes: 'Revisar brevemente o contrato Solidity base para registro de Agentes.',
+      title: 'DAOs: Organizações Autônomas Descentralizadas',
+      notes: 'Explicar como comunidades globais gerenciam milhões de dólares sem diretoria centralizada.',
       content: {
-        category: 'Smart Contracts',
-        subtitle: 'Solidity 0.8.24 + Padrões de Segurança',
+        category: 'Governança & Sociedade',
+        subtitle: 'Modelos de gestão democráticos executados por código imutável',
+        points: [
+          '1. Votação Transparente On-Chain: Membros da comunidade votam em propostas utilizando seus tokens de governança.',
+          '2. Tesouraria Pública Multisig: Fundos do projeto permanecem guardados no contrato e só são liberados após aprovação por consenso.',
+          '3. Execução Autônoma de Decisões: Quando uma proposta atinge o número de votos necessário, o contrato executa a transferência automaticamente.',
+        ],
+        tipBox: {
+          title: '🏛️ Exemplo de DAO na Prática',
+          desc: 'O Stellar Community Fund (SCF) distribui prêmios e fundos de desenvolvimento para projetos Web3 através de votos registrados pela comunidade!',
+          type: 'info',
+        },
+      },
+    },
+    {
+      title: 'A Rede Stellar & O Consenso SCP',
+      notes: 'Apresentar os pilares da Stellar: velocidade (3-5s), taxas insignificantes e o protocolo SCP.',
+      content: {
+        category: 'Infraestrutura Stellar',
+        subtitle: 'Rede global otimizada para pagamentos e inclusão financeira',
+        cards: [
+          {
+            title: 'Velocidade Extrema (3-5s)',
+            desc: 'Confirmações de blocos quase instantâneas, tornando transações comerciais viáveis no dia a dia.',
+            badge: 'Alta Performance',
+          },
+          {
+            title: 'Taxa Quase Nula ($0.00001)',
+            desc: 'Taxa fixa por transação extremamente baixa, protegendo a rede contra spam sem onerar o usuário.',
+            badge: 'Custo Acessível',
+          },
+          {
+            title: 'Consenso SCP (FBA)',
+            desc: 'O Stellar Consensus Protocol não usa mineração Proof-of-Work. Baixo consumo de energia e segurança garantida.',
+            badge: 'Sustentável',
+          },
+        ],
+      },
+    },
+    {
+      title: 'Soroban: Smart Contracts Modernos em Rust',
+      notes: 'Explicar a arquitetura da máquina virtual Soroban e os benefícios de usar Rust.',
+      content: {
+        category: 'Soroban & WASM',
+        subtitle: 'A plataforma de contratos inteligentes de última geração da Stellar',
+        highlights: [
+          '🦀 Segurança do Rust: Garantia de gerenciamento de memória sem riscos de estouro de pilha (buffer overflow).',
+          '⚡ WebAssembly (WASM): Execução de alta velocidade com binários compactos e previsibilidade de recursos.',
+          '📦 State Archiving (Arquivamento de Estado): Previne o inchaço da blockchain mantendo o custo de armazenamento justo.',
+          '🔑 Abstração de Conta Nativa: Suporte a Passkeys (WebAuthn), Biometria e assinaturas customizadas.',
+        ],
+      },
+    },
+    {
+      title: 'Código Hands-On: Smart Contract Soroban em Rust',
+      notes: 'Analisar o código do contrato Rust linha por linha com os participantes.',
+      content: {
+        category: 'Desenvolvimento Prático',
+        subtitle: 'Estrutura básica de um contrato contador em Soroban Rust',
         code: {
-          language: 'solidity',
-          snippet: `// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+          language: 'rust',
+          snippet: `#![no_std]
+use soroban_sdk::{contract, contractimpl, symbol_short, Env, Symbol};
 
-contract AgentRegistry {
-    struct Agent {
-        address owner;
-        string ipfsMetadata;
-        bool isActive;
-    }
+const COUNTER: Symbol = symbol_short!("COUNTER");
 
-    mapping(bytes32 => Agent) public agents;
-    event AgentRegistered(bytes32 indexed agentId, address indexed owner);
+#[contract]
+pub struct CounterContract;
 
-    function registerAgent(bytes32 agentId, string calldata metadata) external {
-        require(!agents[agentId].isActive, "Agent already exists");
-        agents[agentId] = Agent(msg.sender, metadata, true);
-        emit AgentRegistered(agentId, msg.sender);
+#[contractimpl]
+impl CounterContract {
+    /// Incrementa o contador armazenado e retorna o valor atualizado
+    pub fn increment(env: Env) -> u32 {
+        let mut count: u32 = env.storage().instance().get(&COUNTER).unwrap_or(0);
+        count += 1;
+        env.storage().instance().set(&COUNTER, &count);
+        count
     }
 }`,
+          explanation: 'Destaques do Código: #![no_std] remove dependências pesadas; #[contractimpl] expõe os métodos para a ABI WASM; env.storage() gerencia o estado da conta.',
         },
       },
     },
     {
-      title: 'Como Agentes Interagem com a EVM',
-      notes: 'Explicar o ciclo de vida do Tool Calling conectando a LLM aos contratos.',
+      title: 'Agentes de IA na Rede Stellar',
+      notes: 'Conectar os conceitos: Como modelos de IA (LLMs) interagem diretamente com a rede Stellar e contratos Soroban.',
       content: {
-        category: 'Integração Web3',
-        subtitle: 'Tool Calling, Viem e JSON-RPC Protocols',
+        category: 'IA + Web3',
+        subtitle: 'A sinergia entre Inteligência Autônoma e Finanças Descentralizadas',
         points: [
-          '1. Tool Definition: O LLM recebe a assinatura estruturada das funções do Smart Contract.',
-          '2. Intent Generation: A IA decide executar uma leitura (eth_call) ou transação (eth_sendTransaction).',
-          '3. Simulation & Validation: Validação de saldo, limites de gas e simulação de alteração de estado.',
-          '4. Execution & Receipt: Submissão para o nó RPC e monitoramento dos logs do evento.',
+          '1. Micropagamentos Autônomos entre Agentes: Agentes de IA podem pagar requisições de API por frações de centavo usando XLM ou stablecoins.',
+          '2. Formulação de Intenções (Intents): A IA recebe um comando em linguagem natural do usuário e constrói a transação Soroban correspondente.',
+          '3. Validação e Simulação Previa: O agente simula a execução on-chain antes de assinar, evitando desperdício de fundos ou erros de contrato.',
         ],
+        tipBox: {
+          title: '🤖 O Futuro da Automação Financeira',
+          desc: 'Agentes de IA não possuem contas bancárias tradicionais, mas podem possuir chaves públicas Stellar para transacionar valor autonomamente!',
+          type: 'tip',
+        },
       },
     },
     {
-      title: 'Agentes IA com LangChain & Viem (Hands-On)',
-      notes: 'Destacar o código TypeScript real. Focar no schema Zod das ferramentas do Agente.',
+      title: 'Código Hands-On: Ferramenta de Agente IA (TypeScript)',
+      notes: 'Mostrar como uma LLM invoca uma função de envio ou contrato Soroban usando Tool Calling com schema Zod.',
       content: {
-        category: 'Hands-On Code',
-        subtitle: 'Definindo ferramentas Web3 para o Agente em TypeScript',
+        category: 'Integração de Agentes',
+        subtitle: 'Definindo uma ferramenta de micropagamento para Agentes de IA com LangChain',
         code: {
           language: 'typescript',
-          snippet: `import { DynamicStructuredTool } from "@langchain/core/tools";
-import { parseEther } from "viem";
-import { z } from "zod";
+          snippet: `import { DynamicTool } from "@langchain/core/tools";
+import { Keypair, TransactionBuilder, Networks, Operation } from "@stellar/stellar-sdk";
 
-export const transferTokensTool = new DynamicStructuredTool({
-  name: "transfer_tokens",
-  description: "Transfere tokens ERC-20 ou ETH nativo para um endereço destinatário",
-  schema: z.object({
-    recipient: z.string().describe("Endereço Ethereum no formato 0x..."),
-    amount: z.string().describe("Quantidade em ETH/tokens (ex: '0.05')"),
-  }),
-  func: async ({ recipient, amount }) => {
-    const txHash = await walletClient.sendTransaction({
-      to: recipient as \`0x\${string}\`,
-      value: parseEther(amount)
-    });
-    return \`Transação enviada! Hash: \${txHash}\`;
-  }
+export const sendPaymentTool = new DynamicTool({
+  name: "stellar_send_payment",
+  description: "Envia um micropagamento via Rede Stellar para um destinatário especifico",
+  func: async (input: { destination: string; amount: string }) => {
+    // 1. Carrega as chaves criptografadas do Agente
+    const sourceKeys = Keypair.fromSecret(process.env.AGENT_SECRET_KEY!);
+    
+    // 2. Constrói a transação on-chain
+    console.log(\`[AI Agent] Enviando \${input.amount} XLM para \${input.destination}\`);
+    return \`Transação enviada com sucesso para \${input.destination}\`;
+  },
 });`,
+          explanation: 'Explicação: A LLM valida os parâmetros destination e amount antes de chamar o SDK oficial da Stellar para preparar a transação.',
         },
       },
     },
     {
-      title: 'Oráculos & Dados Off-Chain em Tempo Real',
-      notes: 'Mostrar a importância de Chainlink e The Graph para evitar alucinações de LLM em dados de mercado.',
+      title: 'Roadmap Hands-On do Desenvolvedor Web3',
+      notes: 'Mostrar o passo a passo prático para qualquer desenvolvedor começar a construir na Stellar hoje.',
       content: {
-        category: 'Infraestrutura de Dados',
-        subtitle: 'Conectando LLMs a Chainlink Feeds e Subgraphs',
-        cards: [
+        category: 'Guia Prático',
+        subtitle: '3 Passos Simples para Compilar, Fazer Deploy e Testar seu primeiro Smart Contract',
+        timeline: [
           {
-            title: 'Chainlink Price Feeds',
-            desc: 'Garante precificação descentralizada e confiável sem manipulação de oráculos centralizados.',
+            year: 'Passo 1',
+            title: 'Instalar Rust & Stellar CLI',
+            desc: 'Instale o compilador Rust, adicione o target WASM e instale a CLI oficial da Stellar via Cargo.',
+            highlight: 'stellar-cli + cargo',
           },
           {
-            title: 'Subgraphs (The Graph)',
-            desc: 'Consultas em tempo de execução via GraphQL para resgatar histórico de transações do usuário.',
+            year: 'Passo 2',
+            title: 'Criar Carteira & Obter Fundos Testnet',
+            desc: 'Instale a extensão Freighter Wallet e use o Faucet do Stellar Laboratory para receber XLM de testes.',
+            highlight: 'Freighter Wallet + Faucet',
           },
           {
-            title: 'RAG On-Chain',
-            desc: 'Vetorização e indexação de especificações de contratos e mempool para contexto preciso.',
+            year: 'Passo 3',
+            title: 'Deploy e Invocação On-Chain',
+            desc: 'Execute "stellar contract deploy" para subir o arquivo .wasm para a Testnet e invoque os métodos remotamente.',
+            highlight: 'Deploy na Testnet Soroban',
           },
         ],
       },
     },
     {
-      title: 'Casos de Uso Reais na Prática',
-      notes: 'Apresentar exemplos práticos que já estão operando no mercado.',
+      title: 'Conclusão & Próximos Passos',
+      notes: 'Agradecer a participação de todos, abrir para perguntas e respostas (Q&A) e disponibilizar os slides em PDF.',
       content: {
-        category: 'Casos Práticos',
-        subtitle: 'Aplicações reais de Agentes de IA na Web3',
-        cards: [
-          {
-            title: 'DeFi Liquidity Rebalancing',
-            desc: 'Agentes que gerenciam posições em Uniswap v3 e Aave ajustando a liquidez automaticamente.',
-          },
-          {
-            title: 'Automated Governance (DAOs)',
-            desc: 'Agentes que analisam propostas de governança complexas e executam votos alinhados à estratégia.',
-          },
-          {
-            title: 'Autonomous Game NPCs',
-            desc: 'Personagens em jogos Web3 que possuem carteiras próprias e negociam itens com jogadores.',
-          },
-        ],
-      },
-    },
-    {
-      title: 'Segurança & Vetores de Ataque',
-      notes: 'Alertar sobre os riscos e as boas práticas de segurança ao conectar IAs a carteiras ativas.',
-      content: {
-        category: 'Segurança & Compliance',
-        subtitle: 'Mitigando riscos ao dar autonomia financeira a IAs',
-        points: [
-          'Prompt Injection: Proteger as ferramentas contra injeção de texto em mensagens de transação.',
-          'Spending Limits: Aplicar regras rígidas de teto diário de valor em nível de Smart Contract.',
-          'Multi-Signature Approvals: Transações acima do limite exigem aprovação humana explícita.',
-          'Key Isolation: Manter as private keys dos agentes em hardware enclave (KMS / TEE).',
-        ],
-      },
-    },
-    {
-      title: 'Passo a Passo: Construindo seu DApp com IA',
-      notes: 'Passar o roteiro sintético para quem quer implementar o projeto após a aula.',
-      content: {
-        category: 'Roadmap de Implementação',
-        subtitle: 'Da concepção ao deploy em rede de teste (Sepolia / Base)',
-        points: [
-          '1. Escrever e compilar os Smart Contracts em Solidity (Foundry / Hardhat).',
-          '2. Configurar o nó RPC da rede de teste no Alchemy ou Infura.',
-          '3. Criar os Prompts e Tools de IA usando TypeScript / LangChain.',
-          '4. Desenvolver a UI responsiva em Next.js + Tailwind + Socket.IO para sincronização.',
-        ],
-      },
-    },
-    {
-      title: 'Resumo & Principais Insights',
-      notes: 'Recapitulando os 3 pontos mais importantes do workshop.',
-      content: {
-        category: 'Conclusão & Takeaways',
-        subtitle: 'O futuro da Web3 é impulsionado por autonomia inteligente',
+        category: 'Encerramento',
+        badge: 'Obrigado pela Participação!',
+        subtitle: 'Você está pronto para construir a próxima geração de DApps e Agentes de IA na Stellar',
         highlights: [
-          'A Inteligência Artificial é a nova camada de abstração de UI da Web3.',
-          'Account Abstraction remove a dor de cabeca das Private Keys para a audiência.',
-          'Agentes de IA seguros exigem limites claros no contrato inteligente.',
-          'O ecossistema está pronto para produção: Next.js + Viem + Socket.IO.',
+          '✅ Conhecimento Adquirido: Compreensão de Blockchain, DApps, DAOs, SCP e Soroban.',
+          '🚀 Mão na Massa: Exemplos práticos em Rust e TypeScript prontos para expansão.',
+          '📄 Material de Apoio: Faça o download dos slides em PDF diretamente pela página inicial!',
         ],
-      },
-    },
-    {
-      title: 'Encerramento & Material do Workshop',
-      notes: 'Clicar em "Encerrar Sessão" no painel do instrutor para disparar os e-mails aos participantes.',
-      content: {
-        category: 'Follow-up Automático',
-        subtitle: 'Obrigado por participar! O material foi enviado por e-mail.',
-        points: [
-          'Todos os participantes cadastrados receberão o slide e o repositório por e-mail.',
-          'Verifique sua caixa de entrada e pasta de spam.',
-          'Contato & Dúvidas: kauemotavitor30@gmail.com',
-          'Desenvolvido com LiveDeck — Plataforma Sincronizada para Workshops.',
-        ],
+        tipBox: {
+          title: '🎉 Envio Automático dos Slides por E-mail',
+          desc: 'Ao encerrar a sessão pelo Painel do Apresentador, todos os alunos cadastrados receberão a apresentação oficial diretamente na caixa de entrada!',
+          type: 'tip',
+        },
       },
     },
   ];
 
-  const insertSlideStmt = db.prepare(`
-    INSERT INTO slides (id, sessionId, orderIndex, title, content, notes)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `);
-
-  const createdSlides: SlideRecord[] = [];
-
-  rawSlides.forEach((slideItem, index) => {
-    const slideId = `slide_${index}_${crypto.randomBytes(4).toString('hex')}`;
-    const contentStr = JSON.stringify(slideItem.content);
-    insertSlideStmt.run(slideId, session.id, index, slideItem.title, contentStr, slideItem.notes || null);
-    createdSlides.push({
-      id: slideId,
-      sessionId: session.id,
-      orderIndex: index,
-      title: slideItem.title,
-      content: contentStr,
-      notes: slideItem.notes,
-    });
+  rawSlides.forEach((slide, index) => {
+    db.prepare(`
+      INSERT INTO slides (sessionId, orderIndex, title, content, notes)
+      VALUES (?, ?, ?, ?, ?)
+    `).run(sessionId, index, slide.title, JSON.stringify(slide.content), slide.notes || '');
   });
 
+  const createdSlides = db.prepare('SELECT * FROM slides WHERE sessionId = ? ORDER BY orderIndex ASC').all(sessionId) as SlideRecord[];
   return { session, slides: createdSlides };
 }
 
