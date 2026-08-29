@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSession, getOrCreateDefaultSession } from '@/lib/services/session';
 import QRCode from 'qrcode';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const CLOUD_SYNC_URL = 'https://api.restful-api.dev/objects/ff808181a04ccf2d01a04efd79720d1b';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ sessionId: string }> }) {

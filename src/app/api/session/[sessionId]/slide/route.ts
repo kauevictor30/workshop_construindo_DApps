@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateSessionSlide, getSession } from '@/lib/services/session';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 const CLOUD_SYNC_URL = 'https://api.restful-api.dev/objects/ff808181a04ccf2d01a04efd79720d1b';
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ sessionId: string }> }) {
