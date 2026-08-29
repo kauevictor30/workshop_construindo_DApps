@@ -44,10 +44,13 @@ function createDb(): DbInterface {
   let sqliteDb: any = null;
 
   try {
+    const isVercel = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+    if (isVercel) {
+      throw new Error('Vercel serverless runtime detected: skipping better-sqlite3 native bindings');
+    }
+
     const Database = require('better-sqlite3');
-    // On Vercel/serverless environments, use /tmp directory which is writable
-    const isVercel = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME || process.env.NODE_ENV === 'production';
-    const targetDir = isVercel ? '/tmp' : path.join(process.cwd(), 'data');
+    const targetDir = path.join(process.cwd(), 'data');
 
     if (!fs.existsSync(targetDir)) {
       fs.mkdirSync(targetDir, { recursive: true });
