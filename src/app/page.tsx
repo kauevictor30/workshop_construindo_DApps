@@ -258,7 +258,7 @@ export default function StartScreenPage() {
           </button>
 
           <a
-            href={`/presenter/${session?.id}`}
+            href={`/presenter/${session?.id}${session?.presenterToken ? `?token=${session.presenterToken}` : ''}`}
             className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all cursor-pointer"
           >
             <Sliders className="w-4 h-4" />
@@ -383,7 +383,7 @@ export default function StartScreenPage() {
             {/* ACTION BUTTONS BAR */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <a
-                href={`/presenter/${session?.id}`}
+                href={`/presenter/${session?.id}${session?.presenterToken ? `?token=${session.presenterToken}` : ''}`}
                 className="p-4 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-xl shadow-indigo-600/20 border border-indigo-400/30 flex items-center justify-between group transition-all cursor-pointer"
               >
                 <div className="space-y-0.5">
