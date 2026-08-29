@@ -48,8 +48,11 @@ export default function StartScreenPage() {
 
   const socketRef = useRef<Socket | null>(null);
 
-  // Fetch Session data on mount
+  // Fetch Session data on mount with resilient client fallback
   useEffect(() => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://worrkshop-blockchain-vks.vercel.app';
+    const fallbackJoinUrl = `${origin}/join/web3-ai-workshop-2026`;
+
     fetch('/api/session/web3-ai-workshop-2026')
       .then((res) => res.json())
       .then((data) => {
@@ -57,23 +60,55 @@ export default function StartScreenPage() {
           setSession(data.session);
           setSlides(data.slides || []);
           setCurrentSlideIndex(data.session.currentSlide || 0);
-          setQrCodeUrl(data.qrCodeDataUrl || '');
-          setJoinUrl(data.joinUrl || '');
+
+          const finalJoinUrl = data.joinUrl || fallbackJoinUrl;
+          setJoinUrl(finalJoinUrl);
+
+          if (data.qrCodeDataUrl) {
+            setQrCodeUrl(data.qrCodeDataUrl);
+          } else {
+            import('qrcode').then((QRCode) => {
+              QRCode.default.toDataURL(finalJoinUrl, {
+                margin: 2,
+                width: 360,
+                color: { dark: '#4f46e5', light: '#ffffff' },
+              }).then(setQrCodeUrl);
+            });
+          }
+        } else {
+          generateClientFallback(fallbackJoinUrl);
         }
         setLoading(false);
       })
       .catch((err) => {
-        console.error('Failed to load session:', err);
+        console.error('Failed to load session from API, using client fallback:', err);
+        generateClientFallback(fallbackJoinUrl);
         setLoading(false);
       });
+
+    function generateClientFallback(targetJoinUrl: string) {
+      setJoinUrl(targetJoinUrl);
+      import('qrcode').then((QRCode) => {
+        QRCode.default.toDataURL(targetJoinUrl, {
+          margin: 2,
+          width: 360,
+          color: { dark: '#4f46e5', light: '#ffffff' },
+        }).then(setQrCodeUrl);
+      });
+    }
   }, []);
 
   // Socket sync for real-time spectator count and slide updates
   useEffect(() => {
     if (!session) return;
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || window.location.origin;
-    const socket: Socket = io(socketUrl);
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+    if (!socketUrl) return;
+
+    const socket: Socket = io(socketUrl, {
+      reconnectionAttempts: 3,
+      timeout: 5000,
+    });
     socketRef.current = socket;
 
     socket.emit('join:room', { sessionId: session.id });
@@ -84,6 +119,10 @@ export default function StartScreenPage() {
 
     socket.on('room:stats', ({ connectedCount }) => {
       setConnectedCount(connectedCount || 0);
+    });
+
+    socket.on('connect_error', () => {
+      // Quiet fail if standalone socket server is not present in serverless mode
     });
 
     return () => {
