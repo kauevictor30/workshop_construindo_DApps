@@ -79,12 +79,27 @@ export default function StudentJoinPage({ params }: { params: Promise<{ sessionI
     }
   }, [sessionId]);
 
-  // Resilient HTTP Polling Interval (every 1.5s) for instant Serverless/Vercel synchronization
+  // Resilient Cloud & HTTP Polling (every 800ms) for instant cross-device sync on Serverless/Vercel
   useEffect(() => {
     if (!session) return;
 
-    const syncInterval = setInterval(() => {
-      fetch(`/api/session/${sessionId}`)
+    const syncInterval = setInterval(async () => {
+      try {
+        const cloudRes = await fetch('https://api.restful-api.dev/objects/ff808181a04ccf2d01a04efd79720d1b', { cache: 'no-store' });
+        if (cloudRes.ok) {
+          const cloudData = await cloudRes.json();
+          if (typeof cloudData?.data?.currentSlide === 'number') {
+            setCurrentSlideIndex(cloudData.data.currentSlide);
+          }
+          if (cloudData?.data?.status === 'ended') {
+            setSessionEnded(true);
+          }
+          return;
+        }
+      } catch (e) {}
+
+      // Secondary fallback to Next.js API
+      fetch(`/api/session/${sessionId}`, { cache: 'no-store' })
         .then((res) => res.json())
         .then((data) => {
           if (data.session) {
@@ -97,7 +112,7 @@ export default function StudentJoinPage({ params }: { params: Promise<{ sessionI
           }
         })
         .catch(() => {});
-    }, 1500);
+    }, 800);
 
     return () => clearInterval(syncInterval);
   }, [sessionId, session]);

@@ -200,6 +200,21 @@ export default function PresenterControlPage({ params }: { params: Promise<{ ses
         targetSlide: targetIndex,
       });
     }
+
+    // Direct cloud push for instant cross-device sync on serverless Vercel
+    fetch('https://api.restful-api.dev/objects/ff808181a04ccf2d01a04efd79720d1b', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: 'livedeck-web3-ai-workshop-2026',
+        data: {
+          currentSlide: targetIndex,
+          status: 'live',
+          updatedAt: new Date().toISOString(),
+        },
+      }),
+    }).catch((err) => console.error('Cloud sync error:', err));
+
     fetch(`/api/session/${sessionId}/slide`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

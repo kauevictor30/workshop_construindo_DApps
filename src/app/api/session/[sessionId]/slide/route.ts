@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateSessionSlide, getSession } from '@/lib/services/session';
 
+const CLOUD_SYNC_URL = 'https://api.restful-api.dev/objects/ff808181a04ccf2d01a04efd79720d1b';
+
 export async function POST(req: NextRequest, { params }: { params: Promise<{ sessionId: string }> }) {
   try {
     const { sessionId } = await params;
@@ -22,6 +24,25 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ ses
     }
 
     const updated = updateSessionSlide(sessionId, slideIndex);
+
+    // Sync to global persistent cloud store for Vercel lambdas
+    try {
+      await fetch(CLOUD_SYNC_URL, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: 'livedeck-web3-ai-workshop-2026',
+          data: {
+            currentSlide: slideIndex,
+            status: session.status || 'live',
+            updatedAt: new Date().toISOString(),
+          },
+        }),
+      });
+    } catch (e) {
+      console.warn('[API Slide] Failed to push cloud sync state:', e);
+    }
+
     return NextResponse.json({ success: updated, currentSlide: slideIndex });
   } catch (error: any) {
     console.error('[API Slide Update Error]:', error);
