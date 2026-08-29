@@ -21,7 +21,7 @@ import {
   Sliders,
 } from 'lucide-react';
 import { SlideViewer } from '@/components/SlideViewer';
-import { getOrCreateDefaultSession } from '@/lib/services/session';
+import { DEFAULT_SLIDE_ITEMS } from '@/lib/default-slides';
 
 interface SlideItem {
   id?: string;
@@ -78,13 +78,11 @@ export default function PresentationPage() {
       });
 
     function loadFallbackData(targetJoinUrl: string) {
-      const defaultData = getOrCreateDefaultSession();
-      setSession(defaultData.session);
-      const parsed = defaultData.slides.map((s) => ({
-        ...s,
-        content: typeof s.content === 'string' ? JSON.parse(s.content) : s.content,
-      }));
-      setSlides(parsed);
+      setSession({
+        id: 'web3-ai-workshop-2026',
+        title: 'Introdução a Blockchain: Construindo DApps na Web3 com Soroban & Agentes de IA',
+      });
+      setSlides(DEFAULT_SLIDE_ITEMS);
       setJoinUrl(targetJoinUrl);
       generateQrCode(targetJoinUrl);
     }
